@@ -87,11 +87,13 @@ sudo ufw --force enable
 
 # Harden SSH via drop-in (wins over distro defaults; survives package upgrades)
 sudo install -d -m 0755 /etc/ssh/sshd_config.d
-sudo tee /etc/ssh/sshd_config.d/10-hardening.conf > /dev/null <<'EOF'
-PermitRootLogin prohibit-password
-PasswordAuthentication no
-KbdInteractiveAuthentication no
-EOF
+# printf (single line) instead of heredoc — heredocs break when an agent wraps
+# the whole block in `ssh user@host "..."` because the outer quotes close early.
+printf '%s\n' \
+  'PermitRootLogin prohibit-password' \
+  'PasswordAuthentication no' \
+  'KbdInteractiveAuthentication no' \
+  | sudo tee /etc/ssh/sshd_config.d/10-hardening.conf > /dev/null
 
 # Validate config BEFORE restart — broken config + restart can lock you out
 sudo sshd -t || { echo "ABORT: sshd config invalid — fix before restarting"; exit 1; }
