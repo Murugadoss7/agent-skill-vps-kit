@@ -1,0 +1,16 @@
+{
+  "name": "agent-skill-vps-kit",
+  "description": "AI agent skill collection for VPS provisioning and management",
+  "version": "1.0.0",
+  "author": "Murugadoss",
+  "license": "MIT",
+  "skills": [
+    {
+      "name": "vps-provisioning",
+      "path": "skills/vps-provisioning/SKILL.md",
+      "version": "1.0.1",
+      "description": "Provision a fresh VPS from scratch: SSH, Docker, Nginx, Node.js, Python, PostgreSQL, Redis, SSL, monitoring",
+      "agent_types": ["hermes", "claude-code", "codex", "opencode", "openclaw"]
+    }
+  ]
+}
