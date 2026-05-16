@@ -8,7 +8,7 @@ An AI-agent-readable skill for provisioning a fresh VPS from scratch.
 
 | Skill | Description | Version |
 |---|---|---|
-| [vps-provisioning](./skills/vps-provisioning/SKILL.md) | Full VPS bootstrap: SSH hardening, Docker, Nginx, Node.js, Python, PostgreSQL, Redis, SSL, Netdata | 1.0.1 |
+| [vps-provisioning](./skills/vps-provisioning/SKILL.md) | Full VPS bootstrap: SSH hardening, Docker, Nginx, Node.js, Python, PostgreSQL, Redis, SSL, Netdata | 1.1.0 |
 
 ## Quick Start
 
