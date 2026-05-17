@@ -4,6 +4,40 @@ Detailed install recipes for an **empty Ubuntu/Debian VPS**. Loaded only after [
 
 If `docker ps` shows anything or a reverse proxy is already running, stop and use Path A in SKILL.md instead. Running the Docker section below on a host with a running Docker daemon will restart it and may disrupt running stacks.
 
+## ⚠ Read this before installing anything
+
+**This is not a "run sections 1 through 11 in order" guide.** Sections 4–11 are **independently optional components**. An AI agent reading this file MUST NOT install components the operator didn't ask for. Always confirm the component list with the operator before any install step.
+
+## Component Selection (do this first)
+
+Ask the operator: **which of these do you actually need?** Install only the selected ones. The default answer to each is **no** unless explicitly confirmed.
+
+| # | Component | Always required? | Install when |
+|---|---|---|---|
+| 1 | Deploy user + SSH key | ✅ Required | Always — needed for safe access |
+| 2 | UFW + fail2ban + unattended-upgrades + SSH hardening | ✅ Required | Always — this IS the hardening |
+| 3 | Swap | ⚠ Conditional | Only if `free -h` shows < 1 GB RAM AND no swap |
+| 4 | Docker + Docker Compose | ⬜ Optional | Operator wants to run containerized apps |
+| 5 | Nginx + Certbot | ⬜ Optional | Operator wants a host-level reverse proxy with Let's Encrypt SSL. **Do NOT install if the plan is to use Traefik/Caddy in Docker** — they'd compete for ports 80/443. |
+| 6 | Node.js (via nvm) | ⬜ Optional | Operator wants to build/run Node apps on the host (not just in containers) |
+| 7 | Python (pyenv + uv) | ⬜ Optional | Operator wants to build/run Python apps on the host |
+| 8 | PostgreSQL (host install) | ⬜ Optional | Operator wants a host-managed Postgres. Most stacks use a Postgres container instead — skip in that case. |
+| 9 | Redis (host install) | ⬜ Optional | Same as #8 — most stacks use a Redis container. Skip unless host-install is specifically wanted. |
+| 10 | Netdata monitoring | ⬜ Optional | Operator wants real-time host metrics |
+| 11 | AI agent systemd template | ⬜ Optional | Operator is hosting an AI agent (OpenClaw / Hermes / MCP) as a host service rather than in a container |
+
+**Sane defaults for common use cases:**
+
+| Use case | Install |
+|---|---|
+| "Just harden the box, I'll deploy apps via Docker Compose later" | 1, 2, 3 (if low RAM), 4 |
+| "LAMP-style site on the host" | 1, 2, 3, 5, 6 or 7, 8 |
+| "AI agent host (containers)" | 1, 2, 3, 4 — then deploy the agent stack via `docker compose`, not via #11 |
+| "Static site behind Nginx + SSL" | 1, 2, 5 |
+| "Full kitchen sink (the original v1.0 behavior — rarely correct)" | All 11 |
+
+**An AI agent reading this skill should print this table and stop until the operator picks.** Don't proceed to any install section without an explicit selection.
+
 ## Prerequisites
 
 | Requirement | Check |
@@ -11,7 +45,7 @@ If `docker ps` shows anything or a reverse proxy is already running, stop and us
 | VPS IP or hostname | `ping <vps-ip>` responds |
 | Root password OR SSH key already deployed | Ask provider for root access |
 | SSH client on your local machine | `which ssh` |
-| (Optional) DNS A record pointing to VPS IP | For SSL via certbot |
+| (Optional) DNS A record pointing to VPS IP | Only if installing Nginx + Certbot (#5) |
 
 Use `tmux` or `screen` before long installs in case SSH drops:
 
@@ -28,7 +62,7 @@ cat /etc/os-release | grep -E '^ID=|^VERSION_ID='
 
 Note `VERSION_ID`. Ubuntu 24.04+ uses `ssh.service`; older uses `sshd.service`. The hardening commands below auto-detect.
 
-## 1. Initial SSH Access & Deploy User
+## 1. Initial SSH Access & Deploy User  &nbsp; *(✅ required — always install)*
 
 ```bash
 # From your local machine
@@ -49,7 +83,7 @@ cat ~/.ssh/id_ed25519.pub | ssh deploy@<VPS-IP> \
 ssh deploy@<VPS-IP>
 ```
 
-## 2. System Update & UFW + SSH Hardening
+## 2. System Update & UFW + SSH Hardening  &nbsp; *(✅ required — always install)*
 
 This is the same hardening from SKILL.md Path A, included here for the fresh-bootstrap flow. UFW rules here use 22/80/443 because a fresh host has no other services yet — **update them as you deploy each service in later sections.**
 
@@ -89,7 +123,7 @@ sudo systemctl enable --now fail2ban
 
 **Danger zone:** Verify key-based SSH works in a SECOND session BEFORE running the hardening drop-in. See SKILL.md A.2 for the full procedure.
 
-## 3. Swap (Low-RAM VPS)
+## 3. Swap (Low-RAM VPS)  &nbsp; *(⚠ conditional — install only if `free -h` shows < 1 GB RAM)*
 
 ```bash
 if [ ! -f /swapfile ]; then
@@ -105,7 +139,7 @@ grep -qxF 'vm.swappiness=10' /etc/sysctl.conf || \
 sudo sysctl -p
 ```
 
-## 4. Docker & Docker Compose
+## 4. Docker & Docker Compose  &nbsp; *(⬜ optional — skip unless operator wants containers)*
 
 ```bash
 curl -fsSL https://get.docker.com -o get-docker.sh
@@ -125,7 +159,7 @@ docker compose version
 
 **UFW reminder:** When you publish a container port with `-p 80:80`, Docker writes iptables rules ahead of UFW. The port is publicly reachable even if `ufw status` doesn't list it. To keep a Docker service private, bind to loopback: `-p 127.0.0.1:80:80`.
 
-## 5. Nginx + Certbot (SSL)
+## 5. Nginx + Certbot (SSL)  &nbsp; *(⬜ optional — skip if using Traefik/Caddy in Docker; they conflict on ports 80/443)*
 
 ```bash
 sudo apt install -y nginx certbot python3-certbot-nginx
@@ -139,7 +173,7 @@ curl -s localhost | grep -i nginx
 # sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
 ```
 
-## 6. Node.js (via nvm)
+## 6. Node.js (via nvm)  &nbsp; *(⬜ optional — only if running Node directly on the host, not in containers)*
 
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
@@ -156,7 +190,7 @@ npm --version
 npm install -g pnpm
 ```
 
-## 7. Python (pyenv + uv)
+## 7. Python (pyenv + uv)  &nbsp; *(⬜ optional — only if running Python directly on the host, not in containers)*
 
 ```bash
 sudo apt install -y build-essential libssl-dev zlib1g-dev \
@@ -184,7 +218,7 @@ source ~/.bashrc
 uv --version
 ```
 
-## 8. PostgreSQL
+## 8. PostgreSQL  &nbsp; *(⬜ optional — most stacks use a Postgres container instead; skip in that case)*
 
 ```bash
 sudo apt install -y postgresql postgresql-contrib
@@ -203,7 +237,7 @@ sudo -u postgres psql -c "\l"
 
 **Postgres listens on 127.0.0.1:5432 by default.** Don't open 5432 in UFW unless you specifically need external access — connect over loopback or via app containers on the same Docker network.
 
-## 9. Redis
+## 9. Redis  &nbsp; *(⬜ optional — most stacks use a Redis container instead; skip in that case)*
 
 ```bash
 sudo apt install -y redis-server
@@ -229,7 +263,7 @@ sudo systemctl restart redis-server
 redis-cli ping || echo "Expected NOAUTH; retry with: redis-cli -a <password> ping"
 ```
 
-## 10. Monitoring (Netdata)
+## 10. Monitoring (Netdata)  &nbsp; *(⬜ optional — skip unless operator wants host metrics)*
 
 ```bash
 bash <(curl -Ss https://my-netdata.io/kickstart.sh)
@@ -251,7 +285,7 @@ sudo htpasswd -c /etc/nginx/.netdata-htpasswd <username>
 # then add a server{} block proxying / to http://127.0.0.1:19999 with auth_basic
 ```
 
-## 11. AI Agent Host (OpenClaw / Hermes / MCP)
+## 11. AI Agent Host (OpenClaw / Hermes / MCP)  &nbsp; *(⬜ optional — skip if agent runs in Docker; most do)*
 
 ```bash
 mkdir -p /home/deploy/agents

@@ -8,7 +8,7 @@ An AI-agent-readable skill for VPS **hardening, auditing, and provisioning** on 
 
 | Skill | Description | Version |
 |---|---|---|
-| [vps-provisioning](./skills/vps-provisioning/SKILL.md) | Two paths: (A) audit & harden an existing server running Docker/apps without disrupting them; (B) bootstrap a fresh empty VPS (Docker, Nginx, Node, Python, Postgres, Redis, SSL, monitoring). Teaches default-deny UFW, port classification, and the Docker-bypasses-UFW gotcha. | 1.2.0 |
+| [vps-provisioning](./skills/vps-provisioning/SKILL.md) | Two paths: (A) audit & harden an existing server running Docker/apps without disrupting them; (B) bootstrap a fresh empty VPS with **operator-selected components** (Docker, Nginx, Node, Python, Postgres, Redis, SSL, monitoring — pick only what you need). Teaches default-deny UFW, port classification, and the Docker-bypasses-UFW gotcha. | 1.2.1 |
 
 ## Quick Start
 

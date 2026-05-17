@@ -5,7 +5,7 @@ license: MIT
 compatibility: Requires an SSH client and an Ubuntu/Debian VPS with sudo or root access
 metadata:
   author: Murugadoss
-  version: "1.2.0"
+  version: "1.2.1"
   tags: "vps devops hardening audit firewall ufw docker security ssh provisioning"
   category: DevOps
 ---
@@ -137,6 +137,12 @@ sudo sysctl -p
 
 ## A.4 Operator-Driven UFW (the critical step)
 
+> **Common AI-agent misconception:** "Docker is already running — should I skip UFW?" **No. Always run UFW.** UFW and Docker's iptables rules are **two independent layers**:
+> - **UFW protects host-bound services** (anything started by systemd, processes that bind to `0.0.0.0` directly on the host, future installs).
+> - **Docker bypasses UFW for its published ports** — those are governed separately (covered in the reality-check below).
+>
+> So: UFW is always installed, always enabled. It just doesn't catch Docker-published ports — and we handle those in a separate step.
+
 **Do NOT just enable UFW with default-deny without doing this first.** You will lock out anything you didn't list. Use your A.1 audit output.
 
 ```bash
@@ -239,7 +245,9 @@ fi
 echo "OK: host appears empty — proceeding with fresh bootstrap."
 ```
 
-The detailed fresh-bootstrap recipes (Docker install, Nginx, Node via nvm, Python via pyenv, Postgres, Redis, Netdata, systemd agent template) are in [references/bootstrap-fresh.md](references/bootstrap-fresh.md). Load it only after the pre-flight passes.
+The detailed fresh-bootstrap recipes live in [references/bootstrap-fresh.md](references/bootstrap-fresh.md). Load it only after the pre-flight passes.
+
+> **Important for AI agents:** that reference file is **not a "run sections 1–11" script.** Sections 1 and 2 (deploy user + hardening) are required; section 3 (swap) is conditional; sections 4–11 (Docker, Nginx, Node, Python, Postgres, Redis, Netdata, AI-agent template) are **independently optional components.** Before running any install, show the operator the component-selection table at the top of `bootstrap-fresh.md` and confirm which components they actually want. Do not install Redis, Postgres, Node, Python, etc., unless the operator explicitly asks for them — most modern stacks run those in containers, not on the host.
 
 The agent setup, deploy-user creation, Recipes A–D (Node app, Docker Compose stack, disk cleanup, reset), and a deeper troubleshooting guide all live in that reference file.
 

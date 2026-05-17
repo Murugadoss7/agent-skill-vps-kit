@@ -1,14 +1,14 @@
 {
   "name": "agent-skill-vps-kit",
   "description": "AI agent skill for VPS hardening, audit, and bootstrap. Two paths: audit & harden an existing server (Docker + apps already running), or bootstrap a fresh empty host.",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "author": "Murugadoss",
   "license": "MIT",
   "skills": [
     {
       "name": "vps-provisioning",
       "path": "skills/vps-provisioning/SKILL.md",
-      "version": "1.2.0",
+      "version": "1.2.1",
       "description": "Two paths: (A) audit & harden an existing server that runs Docker/apps without disrupting them; (B) bootstrap a fresh empty VPS into a known stack. Teaches default-deny UFW, port classification (public/private/loopback), and the Docker-bypasses-UFW gotcha.",
       "agent_types": ["hermes", "claude-code", "codex", "opencode", "openclaw"]
     }
