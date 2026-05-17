@@ -1,6 +1,6 @@
 # agent-skill-vps-kit 🚀
 
-An AI-agent-readable skill for provisioning a fresh VPS from scratch.
+An AI-agent-readable skill for VPS **hardening, auditing, and provisioning** on Ubuntu/Debian.
 
 **Works with:** Hermes, Claude Code, Codex, OpenCode, OpenClaw — any AI agent that can read structured markdown.
 
@@ -8,7 +8,7 @@ An AI-agent-readable skill for provisioning a fresh VPS from scratch.
 
 | Skill | Description | Version |
 |---|---|---|
-| [vps-provisioning](./skills/vps-provisioning/SKILL.md) | Full VPS bootstrap: SSH hardening, Docker, Nginx, Node.js, Python, PostgreSQL, Redis, SSL, Netdata | 1.1.0 |
+| [vps-provisioning](./skills/vps-provisioning/SKILL.md) | Two paths: (A) audit & harden an existing server running Docker/apps without disrupting them; (B) bootstrap a fresh empty VPS (Docker, Nginx, Node, Python, Postgres, Redis, SSL, monitoring). Teaches default-deny UFW, port classification, and the Docker-bypasses-UFW gotcha. | 1.2.0 |
 
 ## Quick Start
 
